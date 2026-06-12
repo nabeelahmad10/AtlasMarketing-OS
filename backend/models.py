@@ -121,6 +121,7 @@ class AIStrategyResponse(BaseModel):
     predicted_ctr: float
     predicted_revenue: float
     confidence_score: int
+    segment_id: int
 
 class AICampaignAnalysisRequest(BaseModel):
     campaign_id: int

@@ -36,7 +36,7 @@ CITIES = [
     "Goa", "Indore", "Noida"
 ]
 
-# Product catalog for a fashion/lifestyle brand called "LUXE"
+# Product catalog for a fashion/lifestyle brand called "Atlas"
 PRODUCTS = {
     "Winter Collection": [
         ("Cashmere Sweater", 3499, 5999),
