@@ -33,6 +33,7 @@ async def receive_receipt(receipt: DeliveryReceipt, db: aiosqlite.Connection = D
 
     campaign_id = comm[0]
     old_status = comm[1]
+    new_status = receipt.status
 
     # Status progression: sent → delivered → opened → clicked
     # Also: sent → failed

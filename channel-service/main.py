@@ -19,7 +19,7 @@ import random
 from datetime import datetime, timedelta
 
 app = FastAPI(
-    title="LUXE Channel Service",
+    title="Atlas Channel Service",
     description="Stubbed messaging provider for CRM campaign delivery simulation",
     version="1.0.0",
 )
@@ -48,6 +48,18 @@ class SendRequest(BaseModel):
     callback_url: str
 
 
+# Delivery simulation configuration
+DELIVERY_RATES = {
+    "email": {"delivered": 0.95, "opened": 0.45, "clicked": 0.15},
+    "sms": {"delivered": 0.98, "opened": 0.85, "clicked": 0.25},
+    "whatsapp": {"delivered": 0.99, "opened": 0.90, "clicked": 0.35},
+}
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """Health check endpoint for independent microservice deployment."""
+    return {"status": "healthy"}
+
 # Track delivery stats
 delivery_stats = {
     "total_received": 0,
@@ -60,7 +72,7 @@ delivery_stats = {
 @app.get("/")
 async def root():
     return {
-        "name": "LUXE Channel Service",
+        "name": "Atlas Channel Service",
         "version": "1.0.0",
         "status": "healthy",
         "stats": delivery_stats,

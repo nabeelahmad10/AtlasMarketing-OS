@@ -8,7 +8,8 @@ export default function EventFunnel({ campaignId }: { campaignId: number }) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/campaigns/${campaignId}`);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const res = await fetch(`${API_URL}/api/campaigns/${campaignId}`);
         const json = await res.json();
         setData(json);
       } catch (err) {
