@@ -359,7 +359,7 @@ export default function HeroSection({ onNavigate }: HeroSectionProps) {
               <div className="w-7 h-7 ai-gradient rounded-lg flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-[#111]">LUXE<span className="text-[#4F46E5]">CRM</span></span>
+              <span className="font-bold text-[#111]">Atlas<span className="text-[#4F46E5]">CRM</span></span>
             </div>
             <p className="text-sm text-[#999]">
               Built for the Xeno Engineering Internship Assignment 2026

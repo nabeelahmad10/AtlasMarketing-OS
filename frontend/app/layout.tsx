@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LUXE CRM | AI-Native Marketing & Engagement Platform",
+  title: "Atlas Marketing OS | AI-Native Marketing & Engagement Platform",
   description: "Intelligently segment shoppers, craft personalized campaigns, and track performance with AI-powered marketing tools built for modern D2C brands.",
   keywords: "CRM, marketing, AI, segmentation, campaigns, D2C, engagement",
 };

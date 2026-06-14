@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Command, Crosshair, BarChart2, Activity } from "lucide-react";
+import { Zap, Command, Crosshair, BarChart2, Activity, Users } from "lucide-react";
 import CommandCenter from "./components/CommandCenter";
-import StrategyPanel from "./components/StrategyPanel";
-import EventFunnel from "./components/EventFunnel";
+import MissionControl from "./components/MissionControl";
 import InsightsPanel from "./components/InsightsPanel";
+import AudienceView from "./components/AudienceView";
 
-type View = "command" | "strategy" | "funnel" | "insights";
+type View = "command" | "mission-control" | "insights" | "audience";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<View>("command");
@@ -23,7 +23,7 @@ export default function Home() {
           <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center shadow-[0_0_15px_rgba(94,106,210,0.5)]">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <span className="font-semibold tracking-wide text-sm opacity-90">LUXE AI STRATEGIST</span>
+          <span className="font-semibold tracking-wide text-sm opacity-90">Atlas AI STRATEGIST</span>
         </div>
         <nav className="flex gap-4">
           <button 
@@ -38,14 +38,12 @@ export default function Home() {
           >
             <Crosshair className="w-3.5 h-3.5" /> Intelligence
           </button>
-          {activeCampaignId && (
-            <button 
-              onClick={() => setActiveView("funnel")}
-              className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${activeView === "funnel" ? "bg-[var(--color-border-strong)] text-[var(--color-success)]" : "hover:bg-[var(--color-border)] text-[var(--color-secondary)] hover:text-white"}`}
-            >
-              <Activity className="w-3.5 h-3.5" /> Live Monitor
-            </button>
-          )}
+          <button 
+            onClick={() => setActiveView("audience")}
+            className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${activeView === "audience" ? "bg-[var(--color-border-strong)]" : "hover:bg-[var(--color-border)] text-[var(--color-secondary)] hover:text-white"}`}
+          >
+            <Users className="w-3.5 h-3.5" /> Audience Data
+          </button>
         </nav>
       </header>
 
@@ -64,28 +62,24 @@ export default function Home() {
               <CommandCenter 
                 onStrategyGenerated={(data) => {
                   setStrategyData(data);
-                  setActiveView("strategy");
+                  setActiveView("mission-control");
                 }} 
               />
             )}
             
-            {activeView === "strategy" && strategyData && (
-              <StrategyPanel 
+            {activeView === "mission-control" && strategyData && (
+              <MissionControl 
                 strategy={strategyData} 
-                onLaunch={(campaignId) => {
-                  setActiveCampaignId(campaignId);
-                  setActiveView("funnel");
-                }}
                 onBack={() => setActiveView("command")}
               />
             )}
 
-            {activeView === "funnel" && activeCampaignId && (
-              <EventFunnel campaignId={activeCampaignId} />
-            )}
-
             {activeView === "insights" && (
               <InsightsPanel />
+            )}
+
+            {activeView === "audience" && (
+              <AudienceView />
             )}
           </motion.div>
         </AnimatePresence>
