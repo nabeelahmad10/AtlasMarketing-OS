@@ -52,7 +52,7 @@ A marketing and engagement platform for D2C brands. Describe your audience in pl
 |-------|-----------|
 | Backend | Python FastAPI (async) |
 | Database | SQLite (via aiosqlite) |
-| AI | OpenAI API (gpt-4o-mini) |
+| AI | Mistral AI API (mistral-small-latest) |
 | Frontend | Next.js 16, TypeScript, Tailwind CSS, Framer Motion |
 | Icons | Lucide React |
 | HTTP | httpx (async) |
@@ -62,14 +62,14 @@ A marketing and engagement platform for D2C brands. Describe your audience in pl
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- OpenAI API key (for AI features)
+- Mistral AI API key (for AI features)
 
 ### 1. Backend Setup
 
 ```bash
 cd backend
 pip install -r requirements.txt
-# Create .env with your OPENAI_API_KEY
+# Create .env with your MISTRAL_API_KEY
 cp .env.example .env
 # Start CRM API
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -124,7 +124,7 @@ Full customer table with search, city/tag filters, sorting, expandable detail vi
 |----------|-----------|
 | SQLite over PostgreSQL | Sufficient for 50 customers, zero-config deployment, easily swappable |
 | Stubbed channel service | Assignment requirement — simulates real delivery lifecycle |
-| Single OpenAI call for segmentation | Could add caching/retry, but keeps latency low for demo |
+| Single LLM call for segmentation | Could add caching/retry, but keeps latency low for demo |
 | Auto-refresh polling | WebSockets would be better at scale, polling is simpler for MVP |
 | No auth | Not in scope — would add JWT auth for production |
 
