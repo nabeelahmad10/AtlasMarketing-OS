@@ -36,6 +36,8 @@ async def init_db():
                 total_orders INTEGER DEFAULT 0,
                 last_order_date TEXT,
                 tags TEXT DEFAULT '[]',
+                health_score INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'New',
                 created_at TEXT DEFAULT (datetime('now'))
             );
 
@@ -80,6 +82,8 @@ async def init_db():
                 total_failed INTEGER DEFAULT 0,
                 total_opened INTEGER DEFAULT 0,
                 total_clicked INTEGER DEFAULT 0,
+                predicted_outcomes_json TEXT,
+                post_analysis_json TEXT,
                 scheduled_at TEXT,
                 sent_at TEXT,
                 created_at TEXT DEFAULT (datetime('now')),
@@ -101,6 +105,22 @@ async def init_db():
                 created_at TEXT DEFAULT (datetime('now')),
                 FOREIGN KEY (campaign_id) REFERENCES campaigns(id),
                 FOREIGN KEY (customer_id) REFERENCES customers(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS event_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_type TEXT NOT NULL,
+                communication_id INTEGER NOT NULL,
+                payload_json TEXT DEFAULT '{}',
+                timestamp TEXT DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS ai_learnings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                campaign_id INTEGER,
+                learning_text TEXT NOT NULL,
+                category TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
             );
 
             CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);

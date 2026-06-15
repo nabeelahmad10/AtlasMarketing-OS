@@ -8,7 +8,7 @@ import aiosqlite
 import random
 import json
 from datetime import datetime, timedelta
-from database import DATABASE_PATH
+from database import DATABASE_PATH, init_db
 
 # ─── Realistic Data Pools ──────────────────────────────────────
 
@@ -121,6 +121,7 @@ def assign_tags(total_spent, total_orders, days_since_last):
 
 async def seed():
     """Main seeding function."""
+    await init_db()
     async with aiosqlite.connect(DATABASE_PATH) as db:
         # Check if already seeded
         cursor = await db.execute("SELECT COUNT(*) FROM customers")
@@ -228,15 +229,25 @@ async def seed():
                     last_order_date = ordered_at
                 total_orders_generated += 1
 
-            # Calculate tags
+            # Calculate tags, health score, and status
             days_since_last = (now - datetime.strptime(last_order_date, "%Y-%m-%d %H:%M:%S")).days if last_order_date else 999
             tags = assign_tags(total_spent, num_orders, days_since_last)
+            
+            health_score = max(0, min(100, int((total_spent / 1000) * 1.5 + num_orders * 5 - days_since_last * 0.1)))
+            if health_score >= 80:
+                status = "VIP Loyal Customer"
+            elif health_score >= 50:
+                status = "Active Purchaser"
+            elif health_score >= 20:
+                status = "At Risk"
+            else:
+                status = "Likely To Churn"
 
             # Update customer aggregates
             await db.execute(
-                """UPDATE customers SET total_spent=?, total_orders=?, last_order_date=?, tags=?
+                """UPDATE customers SET total_spent=?, total_orders=?, last_order_date=?, tags=?, health_score=?, status=?
                    WHERE id=?""",
-                (round(total_spent, 2), num_orders, last_order_date, json.dumps(tags), cust_id)
+                (round(total_spent, 2), num_orders, last_order_date, json.dumps(tags), health_score, status, cust_id)
             )
 
         await db.commit()

@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #F8F8FA;
-  --color-foreground: #111111;
-  --color-secondary: #666666;
-  --color-primary: #4F46E5;
-  --color-primary-light: #6366F1;
-  --color-primary-dark: #3730A3;
-  --color-card: #FFFFFF;
-  --color-border: rgba(0, 0, 0, 0.08);
-  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-background: #0A0A0A;
+  --color-foreground: #EDEDED;
+  --color-secondary: #888888;
+  --color-primary: #5E6AD2;
+  --color-primary-light: #7E89EC;
+  --color-primary-dark: #3F478B;
+  --color-card: #141414;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
@@ -67,15 +67,17 @@ body {
 
 /* Glass Effect */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(20, 20, 20, 0.72);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-dark {
-  background: rgba(17, 17, 17, 0.72);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Card Styles */
@@ -156,7 +158,7 @@ body {
 
 /* Dot Grid Background */
 .dot-grid {
-  background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 

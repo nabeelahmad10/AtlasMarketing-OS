@@ -7,9 +7,9 @@ from fastapi import APIRouter, Depends
 import aiosqlite
 import httpx
 import os
-from datetime import datetime
 from database import get_db
 from models import CampaignCreate
+import json
 
 router = APIRouter(prefix="/api/campaigns", tags=["Campaigns"])
 
@@ -44,7 +44,7 @@ async def create_campaign(campaign: CampaignCreate, db: aiosqlite.Connection = D
     if not customers:
         return {"error": "No customers in this segment"}
 
-    # Create campaign record
+    from datetime import datetime
     now = datetime.now().isoformat()
     cursor = await db.execute(
         """INSERT INTO campaigns (name, segment_id, message_template, channel, status, total_sent, sent_at)
@@ -63,10 +63,16 @@ async def create_campaign(campaign: CampaignCreate, db: aiosqlite.Connection = D
 
         comm_cursor = await db.execute(
             """INSERT INTO communications (campaign_id, customer_id, channel, message, status, sent_at)
-               VALUES (?, ?, ?, ?, 'sent', ?)""",
+               VALUES (?, ?, ?, ?, 'queued', ?)""",
             (campaign_id, cust_dict["id"], campaign.channel, personalized_msg, now)
         )
         comm_id = comm_cursor.lastrowid
+        
+        # Log QUEUED event
+        await db.execute(
+            "INSERT INTO event_log (event_type, communication_id, payload_json) VALUES (?, ?, ?)",
+            ("MESSAGE_QUEUED", comm_id, json.dumps({"timestamp": now}))
+        )
 
         communications.append({
             "communication_id": comm_id,

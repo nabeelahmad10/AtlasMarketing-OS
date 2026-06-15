@@ -91,7 +91,7 @@ class AISegmentRequest(BaseModel):
 class AISegmentResponse(BaseModel):
     segment_name: str
     description: str
-    sql_query: str
+    filter_json: dict
     customer_count: int
     customer_ids: List[int]
     segment_id: int
@@ -106,8 +106,32 @@ class AIMessageResponse(BaseModel):
     subject_line: Optional[str] = None
     channel_recommendation: str
 
+class AIStrategyRequest(BaseModel):
+    business_goal: str = Field(..., description="The marketing outcome you want to achieve.")
 
-# ─── Receipt Models ───────────────────────────────────────────
+class AIStrategyResponse(BaseModel):
+    business_objective: str
+    target_audience: str
+    audience_filter_json: dict
+    estimated_reach: int
+    recommended_channel: str
+    channel_reasoning: str
+    campaign_concept: str
+    predicted_open_rate: float
+    predicted_ctr: float
+    predicted_revenue: float
+    confidence_score: int
+
+class AICampaignAnalysisRequest(BaseModel):
+    campaign_id: int
+
+class AICampaignAnalysisResponse(BaseModel):
+    open_rate_analysis: str
+    ctr_analysis: str
+    revenue_impact_analysis: str
+    key_learnings: List[str]
+
+# ─── Receipt & Event Models ───────────────────────────────────
 
 class DeliveryReceipt(BaseModel):
     communication_id: int

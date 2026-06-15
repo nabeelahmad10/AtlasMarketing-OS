@@ -9,6 +9,7 @@ from datetime import datetime
 from database import get_db
 from models import DeliveryReceipt
 from typing import List
+import json
 
 router = APIRouter(prefix="/api/receipts", tags=["Receipts"])
 
@@ -37,11 +38,26 @@ async def receive_receipt(receipt: DeliveryReceipt, db: aiosqlite.Connection = D
     # Also: sent → failed
     status_hierarchy = {"pending": 0, "sent": 1, "delivered": 2, "opened": 3, "clicked": 4, "failed": -1}
 
-    new_status = receipt.status
+    # Idempotency check: Have we already processed this event for this communication?
+    event_type = f"MESSAGE_{new_status.upper()}"
+    idempotency_cursor = await db.execute(
+        "SELECT 1 FROM event_log WHERE communication_id = ? AND event_type = ?",
+        (receipt.communication_id, event_type)
+    )
+    if await idempotency_cursor.fetchone():
+        return {"message": "Idempotent request ignored", "current_status": old_status}
+
     # Only progress forward (don't regress from 'opened' to 'delivered')
     if new_status != "failed":
         if status_hierarchy.get(new_status, 0) <= status_hierarchy.get(old_status, 0):
             return {"message": "Status already at or past this stage", "current_status": old_status}
+
+    # Log immutable event
+    payload = json.dumps({"timestamp": receipt.timestamp, "failure_reason": receipt.failure_reason})
+    await db.execute(
+        "INSERT INTO event_log (event_type, communication_id, payload_json) VALUES (?, ?, ?)",
+        (event_type, receipt.communication_id, payload)
+    )
 
     # Update communication record
     update_fields = {"status": new_status}
@@ -49,14 +65,13 @@ async def receive_receipt(receipt: DeliveryReceipt, db: aiosqlite.Connection = D
         update_fields["delivered_at"] = receipt.timestamp
     elif new_status == "opened":
         update_fields["opened_at"] = receipt.timestamp
-        # If not yet marked delivered, mark it
-        if old_status == "sent":
+        if old_status in ("queued", "sent"):
             update_fields["delivered_at"] = receipt.timestamp
     elif new_status == "clicked":
         update_fields["clicked_at"] = receipt.timestamp
-        if old_status in ("sent", "delivered"):
+        if old_status in ("queued", "sent", "delivered"):
             update_fields["opened_at"] = receipt.timestamp
-        if old_status == "sent":
+        if old_status in ("queued", "sent"):
             update_fields["delivered_at"] = receipt.timestamp
     elif new_status == "failed":
         update_fields["failed_reason"] = receipt.failure_reason
@@ -101,6 +116,21 @@ async def receive_batch_receipts(receipts: List[DeliveryReceipt], db: aiosqlite.
         campaign_ids.add(campaign_id)
         old_status = comm[1]
         new_status = receipt.status
+
+        event_type = f"MESSAGE_{new_status.upper()}"
+        idempotency_cursor = await db.execute(
+            "SELECT 1 FROM event_log WHERE communication_id = ? AND event_type = ?",
+            (receipt.communication_id, event_type)
+        )
+        if await idempotency_cursor.fetchone():
+            results.append({"communication_id": receipt.communication_id, "status": "idempotent_skip"})
+            continue
+
+        payload = json.dumps({"timestamp": receipt.timestamp, "failure_reason": receipt.failure_reason})
+        await db.execute(
+            "INSERT INTO event_log (event_type, communication_id, payload_json) VALUES (?, ?, ?)",
+            (event_type, receipt.communication_id, payload)
+        )
 
         # Update communication
         update_fields = {"status": new_status}

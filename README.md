@@ -12,27 +12,28 @@ A marketing and engagement platform for D2C brands. Describe your audience in pl
 
 ```
 ┌──────────────────────┐          ┌─────────────────────────┐
-│    Next.js Frontend  │─────────>│    CRM API (FastAPI)     │
-│    Port 3000         │<─────────│    Port 8000             │
-│                      │          │                          │
-│  • Audience Explorer │          │  • /api/customers        │
-│  • AI Campaign Build │          │  • /api/segments         │
-│  • Live Analytics    │          │  • /api/campaigns        │
-│  • Landing Page      │          │  • /api/receipts         │
-└──────────────────────┘          │  • /api/analytics        │
-                                  │  • /api/ai/segment       │
-                                  │  • /api/ai/message       │
+│    Next.js Frontend  │─────────>│    CRM API (FastAPI)    │
+│    Port 3000         │<─────────│    Port 8000            │
+│                      │          │                         │
+│  • Audience Explorer │          │  • /api/customers       │
+│  • AI Campaign Build │          │  • /api/segments        │
+│  • Live Analytics    │          │  • /api/campaigns       │
+│  • Landing Page      │          │  • /api/receipts        │
+└──────────────────────┘          │  • /api/analytics       │
+                                  │  • /api/ai/segment      │
+                                  │  • /api/ai/message      │
                                   └────────┬────────────────┘
+                                           │
                                            │ HTTP POST /send
                                            v
-                                  ┌─────────────────────────┐
+                                  ┌───────────────────────────┐
                                   │  Channel Service (FastAPI)│
-                                  │  Port 8001               │
-                                  │                          │
-                                  │  • Simulates delivery    │
+                                  │  Port 8001                │
+                                  │                           │
+                                  │  • Simulates delivery     │
                                   │  • Async status callbacks │
-                                  │  • Retry with backoff    │
-                                  └─────────────────────────┘
+                                  │  • Retry with backoff     │
+                                  └───────────────────────────┘
 ```
 
 ### The Async Callback Loop

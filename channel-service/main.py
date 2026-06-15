@@ -138,6 +138,15 @@ async def simulate_delivery(comm: Communication, callback_url: str):
     """
     now = datetime.now()
 
+    # ─── Step 0: Sent (Dispatched to network) ───────────────
+    await asyncio.sleep(random.uniform(0.1, 0.5))
+    sent_time = now + timedelta(seconds=random.uniform(0.1, 0.5))
+    await send_callback(callback_url, {
+        "communication_id": comm.communication_id,
+        "status": "sent",
+        "timestamp": sent_time.isoformat(),
+    })
+
     # ─── Step 1: Delivery ────────────────────────────────────
     await asyncio.sleep(random.uniform(0.5, 2.0))
 
