@@ -1,25 +1,31 @@
 /**
- * API client for communicating with the LUXE CRM backend.
+ * API client for communicating with the Atlas Marketing OS backend.
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
 
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(error.error || error.detail || `API Error: ${res.status}`);
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: res.statusText }));
+      // Return error object instead of throwing, allowing components to gracefully handle it
+      return { error: errorData.error || errorData.detail || `API Error: ${res.status}` } as any;
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error(`[Network Error] Failed to fetch ${endpoint}:`, error);
+    return { error: "Unable to connect to the server. Please check if the backend is running." } as any;
   }
-
-  return res.json();
 }
 
 // ─── Customer APIs ────────────────────────────────────────────
@@ -36,6 +42,7 @@ export interface Customer {
   total_spent: number;
   total_orders: number;
   last_order_date: string | null;
+  health_score: number;
   tags: string[];
   created_at: string;
 }

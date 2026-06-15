@@ -8,12 +8,13 @@ export default function StrategyPanel({ strategy, onLaunch, onBack }: any) {
   const handleLaunch = async () => {
     setIsLaunching(true);
     try {
-      const res = await fetch("http://localhost:8000/api/campaigns", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_URL}/api/campaigns`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: strategy.business_objective,
-          segment_id: 1, // Hack for demo, ideally backend returns segment_id from strategy creation
+          segment_id: strategy.segment_id,
           message_template: strategy.campaign_concept,
           channel: strategy.recommended_channel.toLowerCase(),
         }),
@@ -21,9 +22,9 @@ export default function StrategyPanel({ strategy, onLaunch, onBack }: any) {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       onLaunch(data.campaign_id);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to launch campaign.");
+      alert(err.message || "Failed to launch campaign.");
     } finally {
       setIsLaunching(false);
     }
@@ -47,8 +48,8 @@ export default function StrategyPanel({ strategy, onLaunch, onBack }: any) {
           </div>
           <button 
             onClick={handleLaunch}
-            disabled={isLaunching}
-            className="ai-gradient text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-[var(--color-primary)]/20 hover:shadow-[var(--color-primary)]/40 transition-all hover:-translate-y-1"
+            disabled={isLaunching || strategy.estimated_reach === 0}
+            className="ai-gradient text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-[var(--color-primary)]/20 hover:shadow-[var(--color-primary)]/40 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
           >
             {isLaunching ? "Launching..." : <><Play className="w-4 h-4" /> Execute Campaign</>}
           </button>
@@ -110,14 +111,24 @@ export default function StrategyPanel({ strategy, onLaunch, onBack }: any) {
                   <span className="text-white font-medium">{(strategy.predicted_ctr * 100).toFixed(1)}%</span>
                 </div>
                 <div className="h-2 w-full bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
-                  <div className="h-full bg-[var(--color-success)]" style={{ width: `${strategy.predicted_ctr * 100}%` }}></div>
+                  <div className="h-full bg-[var(--color-success)] shadow-[0_0_10px_var(--color-success)]" style={{ width: `${strategy.predicted_ctr * 100}%` }}></div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-[rgba(255,255,255,0.05)]">
+              
+              <div className="pt-4 border-t border-[rgba(255,255,255,0.05)] relative group cursor-help">
                 <span className="text-[var(--color-secondary)] text-sm block mb-1">Predicted Revenue Impact</span>
-                <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">
+                <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">
                   ₹{strategy.predicted_revenue.toLocaleString()}
                 </span>
+                
+                {/* Deterministic Explanation Tooltip */}
+                <div className="absolute top-full mt-2 right-0 w-64 bg-[#111] border border-[rgba(255,255,255,0.1)] p-3 rounded-lg shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                  <p className="text-xs text-white font-medium mb-1 flex items-center gap-1"><Zap className="w-3 h-3 text-[var(--color-primary-light)]"/> Deterministic Model</p>
+                  <p className="text-[10px] text-[var(--color-secondary)] leading-relaxed">
+                    Revenue calculated mathematically via base rate formulas rather than LLM hallucination: <br/>
+                    <code className="bg-[#222] px-1 py-0.5 rounded mt-1 inline-block">({(strategy.predicted_ctr * 100).toFixed(1)}% CTR) × {strategy.estimated_reach} × 5% Conv. × Avg Spend</code>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
