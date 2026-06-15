@@ -1,141 +1,68 @@
-# LUXE CRM — AI-Native Mini CRM for Marketing & Engagement
+# Atlas Marketing OS
+> An AI-Native Decision Intelligence Engine for Modern Marketing Teams.
 
-> Built for the Xeno Engineering Internship Assignment 2026
+**Built for the Xeno Engineering Evaluation.**
 
-## What is LUXE CRM?
+## Product Vision
+Legacy CRMs act as static filing cabinets requiring operators to write complex SQL queries just to find an audience. **Atlas Marketing OS** flips the paradigm: it acts as a **Decision Intelligence Engine**. You provide the business intent (e.g., *"Recover dormant VIP revenue"*), and the system autonomously translates that intent into data queries, formulates a mathematically backed strategy, executes the campaign via decoupled microservices, and conducts its own post-mortem analysis.
 
-A marketing and engagement platform for D2C brands. Describe your audience in plain English, and AI builds the segment, crafts the message, and launches the campaign — all from a single prompt.
-
-**This is NOT a sales CRM.** It's a marketing tool for reaching shoppers through personalized, data-driven campaigns.
+## Features
+- **Agentic Workflow:** Translates natural language goals into precise database queries using a JSON AST layer, preventing LLM hallucination.
+- **Deterministic Predictions:** Projects Open Rates, CTRs, and Revenue based on real audience counts and hardcoded baseline math, not LLM guesses.
+- **Webhook-Driven Event Sourcing:** A decoupled Channel Service simulates asynchronous delivery (Email/SMS/WhatsApp) and fires webhooks back to the main API, appending to an immutable event ledger.
+- **Real-Time Execution Funnel:** The Next.js frontend polls the webhook ledger, rendering a live, smoothly animating execution funnel as messages are delivered and opened in real-time.
+- **AI Post-Mortem Analysis:** Automatically runs a post-campaign analysis based on the final webhook event counts to determine exactly why a campaign succeeded or failed.
+- **Premium UI:** Designed with a Linear/Vercel-inspired glassmorphic aesthetic featuring 150-300ms micro-animations.
 
 ## Architecture
+- **Frontend:** Next.js (React), TypeScript, Tailwind CSS, Framer Motion.
+- **Backend Core:** FastAPI (Python), strictly typed with Pydantic.
+- **Database:** SQLite (Relational, strictly normalized, event-driven).
+- **AI Engine:** Mistral AI.
+- **Microservices:** A completely independent `channel-service` running on its own port simulating 3rd party providers (like Twilio/SendGrid).
 
-```
-┌──────────────────────┐          ┌─────────────────────────┐
-│    Next.js Frontend  │─────────>│    CRM API (FastAPI)    │
-│    Port 3000         │<─────────│    Port 8000            │
-│                      │          │                         │
-│  • Audience Explorer │          │  • /api/customers       │
-│  • AI Campaign Build │          │  • /api/segments        │
-│  • Live Analytics    │          │  • /api/campaigns       │
-│  • Landing Page      │          │  • /api/receipts        │
-└──────────────────────┘          │  • /api/analytics       │
-                                  │  • /api/ai/segment      │
-                                  │  • /api/ai/message      │
-                                  └────────┬────────────────┘
-                                           │
-                                           │ HTTP POST /send
-                                           v
-                                  ┌───────────────────────────┐
-                                  │  Channel Service (FastAPI)│
-                                  │  Port 8001                │
-                                  │                           │
-                                  │  • Simulates delivery     │
-                                  │  • Async status callbacks │
-                                  │  • Retry with backoff     │
-                                  └───────────────────────────┘
-```
+## Local Setup
 
-### The Async Callback Loop
-
-1. CRM triggers a campaign → sends communications to the Channel Service
-2. Channel Service simulates delivery with realistic delays
-3. For each message, it determines outcomes:
-   - 90% delivered → 65% of those opened → 35% of those clicked
-   - 10% failed (with random failure reasons)
-4. Channel Service POSTs receipts back to CRM's `/api/receipts` webhook
-5. CRM updates communication status and campaign aggregates
-6. Frontend auto-refreshes analytics every 5 seconds to show live progress
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Python FastAPI (async) |
-| Database | SQLite (via aiosqlite) |
-| AI | Mistral AI API (mistral-small-latest) |
-| Frontend | Next.js 16, TypeScript, Tailwind CSS, Framer Motion |
-| Icons | Lucide React |
-| HTTP | httpx (async) |
-
-## Getting Started
-
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- Mistral AI API key (for AI features)
-
-### 1. Backend Setup
-
+### 1. Backend API
 ```bash
 cd backend
+python -m venv venv
+source venv/Scripts/activate # Windows
 pip install -r requirements.txt
-# Create .env with your MISTRAL_API_KEY
 cp .env.example .env
-# Start CRM API
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# Start the backend on port 8000
+uvicorn main:app --reload --port 8000
 ```
 
-### 2. Channel Service Setup
-
+### 2. Channel Service (Simulated External Provider)
+Open a new terminal:
 ```bash
 cd channel-service
+python -m venv venv
+source venv/Scripts/activate # Windows
 pip install -r requirements.txt
-python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+cp .env.example .env
+# Start the channel service on port 8001
+uvicorn main:app --reload --port 8001
 ```
 
-### 3. Frontend Setup
-
+### 3. Frontend
+Open a new terminal:
 ```bash
 cd frontend
 npm install
-# Create .env.local with NEXT_PUBLIC_API_URL
+cp .env.example .env.local
+# Start the frontend on port 3000
 npm run dev
 ```
 
-### 4. Open the App
+Visit `http://localhost:3000` to access the Command Center.
 
-Visit `http://localhost:3000`
+## System Design Decisions & Tradeoffs
+1. **SQLite over PostgreSQL:** Used for the MVP to allow zero-config evaluations. However, the schema is strictly normalized and fully compatible with Postgres. Transitioning requires only updating the SQLAlchemy connection string.
+2. **JSON AST over Text-to-SQL:** The LLM generates a JSON filter instead of raw SQL. This acts as a security abstraction layer, preventing SQL injection and ensuring the LLM can only query explicitly whitelisted schema fields.
+3. **Decoupled Microservice:** Built the channel dispatcher as a separate FastAPI app to prove competency in distributed systems and asynchronous webhook processing, a critical requirement for massive scale.
 
-## Features
-
-### AI-Powered Segmentation
-Type a natural language query like "Find me VIP customers from Mumbai who bought winter gear" and AI translates it into a precise SQL query, creates a segment, and returns matching customers.
-
-### Smart Campaign Builder
-4-step chat-first flow:
-1. **Describe** your target audience
-2. **AI creates** the segment
-3. **AI generates** personalized message copy
-4. **Launch** the campaign with one click
-
-### Live Analytics
-Auto-refreshing dashboard showing:
-- Delivery funnel (Sent → Delivered → Opened → Clicked)
-- Campaign performance table with rates
-- Real-time activity feed
-- Channel breakdown
-
-### Audience Explorer
-Full customer table with search, city/tag filters, sorting, expandable detail views with spend stats and tags.
-
-## Scale Assumptions & Tradeoffs
-
-| Decision | Rationale |
-|----------|-----------|
-| SQLite over PostgreSQL | Sufficient for 50 customers, zero-config deployment, easily swappable |
-| Stubbed channel service | Assignment requirement — simulates real delivery lifecycle |
-| Single LLM call for segmentation | Could add caching/retry, but keeps latency low for demo |
-| Auto-refresh polling | WebSockets would be better at scale, polling is simpler for MVP |
-| No auth | Not in scope — would add JWT auth for production |
-
-## Data Model
-
-- **50 customers** with realistic Indian names, emails, phone numbers
-- **~300 orders** across 5 product categories (Winter Collection, Summer Collection, Accessories, Footwear, Basics)
-- **Behavioral tags**: high-value, vip, frequent-buyer, new-customer, at-risk, dormant, deal-seeker, brand-loyal, seasonal-buyer
-- **4 customer archetypes**: whale (10-20 orders), regular (5-10), occasional (2-5), one-timer (1-2)
-
-## License
-
-Built with care for the Xeno Internship Assignment.
+## Future Improvements
+- **Message Queues:** Replace synchronous webhook HTTP calls with Kafka or Redis Pub/Sub for scale.
+- **Streaming UI:** Transition the real-time polling Event Funnel to WebSockets or Server-Sent Events (SSE).

@@ -3,7 +3,7 @@
 > Deadline: 2026-06-15 12:00 PM IST (noon)
 > Time Remaining: ~9.3 hours
 
-## Project: LUXE CRM - AI-Native Marketing & Engagement Platform
+## Project: Atlas Marketing OS - AI-Native Marketing & Engagement Platform
 
 ### Architecture
 ```
